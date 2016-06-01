@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"test/vkapi"
 	"time"
-	"webapp/vkapi"
 )
 
 var (
@@ -15,7 +15,7 @@ var (
 )
 
 func main() {
-	api.AccessToken = "Put your token here"
+	api.AccessToken = " PUT YOUR TOKEN HERE"
 	prefixes := []string{"Afina ", "Афина ", "бот ", "Afina, ", "Афина, ", "бот, ", "!"}
 	p := make(map[string]string)
 	p["count"] = "1"
@@ -24,18 +24,6 @@ func main() {
 	is_pause := 0
 	for {
 		m := api.Request("messages.get", p)
-		//uid
-		uid_regexp, _ := regexp.Compile("\"uid\":([0-9]+),\"read")
-		uid := uid_regexp.FindStringSubmatch(m)[1]
-		//uid
-
-		//chat_id
-		// chat_id_regexp, _ := regexp.Compile("\"chat_id\":([0-9]+)")
-		// chat_id := chat_id_regexp.FindStringSubmatch(m)[1]
-		// if chat_id != "" {
-		// 	uid = chat_id
-		// }
-		//chat_id
 
 		body := "no"
 
@@ -69,15 +57,15 @@ func main() {
 					case e + "создатель":
 						send("Meryborn(https://vk.com/meryborn)", "photo232317814_403576721")
 					case e + "3Dняшку":
-						random_photo("https://vk.com/album232317814_232070447", uid, "Лови 3D няшку")
+						random_photo("https://vk.com/album232317814_232070447", "Лови 3D няшку")
 					case e + "2Dняшку", e + "няшку":
-						random_photo("https://vk.com/album232317814_231917660", uid, "Лови 2D няшку")
+						random_photo("https://vk.com/album232317814_231917660", "Лови 2D няшку")
 					case e + "мику", e + "хатсуне", e + "хатсуне мику":
-						random_photo("https://vk.com/album232317814_231918384", uid, "Лови Хатсуне Мику")
+						random_photo("https://vk.com/album232317814_231918384", "Лови Хатсуне Мику")
 					case e + "мегумин", e + "megumin":
-						random_photo("https://vk.com/album-54385020_174984625", uid, "Лови Мегумин")
+						random_photo("https://vk.com/album-54385020_174984625", "Лови Мегумин")
 					case e + "shiro", e + "широ", e + "waifu", e + "вайфу":
-						random_photo("vk.com/album232317814_229487221", uid, "Лови Широ")
+						random_photo("vk.com/album232317814_229487221", "Лови Широ")
 						//
 						//Commands
 						//
@@ -93,14 +81,11 @@ func main() {
 }
 
 func send(msg string, img string) {
-
-	response := api.Request("messages.get", map[string]string{"count": "1", "out": "0"})
-	uid_regexp, _ := regexp.Compile("\"uid\":([0-9]+),\"read")
-	uid := uid_regexp.FindStringSubmatch(response)[1]
-	api.Request("messages.send", map[string]string{"user_id": uid, "message": msg, "attachment": img})
+	k, v := GetUid()
+	api.Request("messages.send", map[string]string{k: v, "message": msg, "attachment": img})
 }
 
-func random_photo(url string, to_user string, message string) {
+func random_photo(url string, message string) {
 	album_id := strings.Split((strings.Split(url, "/a")[1]), "_")[1]
 	user_id := strings.Replace((strings.Split((strings.Split(url, "/a")[1]), "_")[0]), "lbum", "", 1)
 	photos_count := api.Request("photos.getAlbums", map[string]string{"owner_id": user_id, "album_ids": album_id})
@@ -111,10 +96,46 @@ func random_photo(url string, to_user string, message string) {
 	pid_regexp, _ := regexp.Compile("\"pid\":([0-9]+)")
 	photo_id_string := pid_regexp.FindStringSubmatch(p_id)[1]
 	//photo_id_int, _ := strconv.Atoi(photo_id_string)
-	api.Request("messages.send", map[string]string{"user_id": to_user, "message": message + " №" + strconv.Itoa(offset), "attachment": "photo" + user_id + "_" + photo_id_string})
+	k, v := GetUid()
+	api.Request("messages.send", map[string]string{"message": message + " №" + strconv.Itoa(offset), k: v, "attachment": "photo" + user_id + "_" + photo_id_string})
 }
 
 func randInt(min int, max int) int {
 	rand.Seed(time.Now().UTC().UnixNano())
 	return min + rand.Intn(max-min)
+}
+
+func GetUid() (string, string) {
+	p := make(map[string]string)
+	p["count"] = "1"
+	p["out"] = "0"
+	m := api.Request("messages.get", p)
+	//uid
+	uid_regexp, _ := regexp.Compile("\"uid\":([0-9]+),\"read")
+	uid := uid_regexp.FindStringSubmatch(m)[1]
+	//uid
+	//chat_id
+
+	title := vkapi.GetResponse(m, "title")
+	if title != " ... " {
+		chat_id_regexp, _ := regexp.Compile("\"chat_id\":([0-9]+)")
+		chat_id := chat_id_regexp.FindStringSubmatch(m)[1]
+		return "chat_id", chat_id
+
+	} else {
+		return "user_id", uid
+	}
+
+}
+
+func getRandUser() string {
+	params := make(map[string]string)
+	k, v := GetUid()
+	params[k] = v
+
+	chatUsers := api.Request("messages.getChatUsers", params)
+
+	users_regexp, _ := regexp.Compile("([0-9]+)")
+	users := users_regexp.FindAllStringSubmatch(chatUsers, 50)
+	return users[rand.Intn(len(users))][0]
 }
