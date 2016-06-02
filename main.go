@@ -15,7 +15,7 @@ var (
 )
 
 func main() {
-	api.AccessToken = "Put your token here"
+	api.AccessToken = "token_here"
 	prefixes := []string{"Afina ", "Афина ", "бот ", "Afina, ", "Афина, ", "бот, ", "!", "0", ""}
 	p := make(map[string]string)
 	p["count"] = "1"
@@ -56,7 +56,7 @@ func main() {
 
 					case e + "help", e + "помощь", e + "старт":
 						send(help_message, "photo232317814_403576726")
-					case e + "привет", e + "Привет":
+					case e + "hi", e + "hello":
 						send("Здравствуй, Семпай", "photo232317814_403576725")
 					case e + "создатель":
 						send("Meryborn(https://vk.com/meryborn)", "photo232317814_403576721")
@@ -72,9 +72,9 @@ func main() {
 						random_photo("vk.com/album232317814_229487221", "Лови Широ")
 					case e + "Hitler", e + "hitler", e + "/":
 						random_photo("vk.com/album232317814_232435013", "1488")
-					case e + "kappa", e + "каппа", e + "карра", e + "KAPPA":
+					case e + "kappa", e + "каппа", e + "карра", e + "KAPPA", e + "Kappa":
 						random_photo("vk.com/album230766065_223378577", "SUPERKAPPA")
-					case e + "вайфулинуса", e + "сучкалинуса":
+					case e + "вайфулинуса", e + "сучкалинуса", e + "СучкаЛинуса":
 						random_photo("vk.com/album-90206250_213182965", "сучка подана, ссаный линус")
 					case e + "кто":
 						send("Рандомный юзер "+getRandUser(), "")
